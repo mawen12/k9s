@@ -56,6 +56,7 @@ type (
 	}
 
 	// Style tracks K9s styles.
+	// Style 跟踪 K9s 样式
 	Style struct {
 		Body   Body   `json:"body" yaml:"body"`
 		Prompt Prompt `json:"prompt" yaml:"prompt"`

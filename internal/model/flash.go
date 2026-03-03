@@ -14,17 +14,22 @@ import (
 
 const (
 	// DefaultFlashDelay sets the flash clear delay.
+	// DefaultFlashDelay 设置 flash 的默认延迟，6s
 	DefaultFlashDelay = 6 * time.Second
 
 	// FlashInfo represents an info message.
+	// FlashInfo 代表Info消息
 	FlashInfo FlashLevel = iota
 	// FlashWarn represents an warning message.
+	// FlashWarn 代表Warn消息
 	FlashWarn
 	// FlashErr represents an error message.
+	// FlashErr 代表错误消息
 	FlashErr
 )
 
 // LevelMessage tracks a message and severity.
+// LevelMessage 跟踪消息和严重性
 type LevelMessage struct {
 	Level FlashLevel
 	Text  string
@@ -55,6 +60,7 @@ type FlashListener interface {
 }
 
 // Flash represents a flash message model.
+// Flash 代表一个快闪消息模型
 type Flash struct {
 	msg     LevelMessage
 	cancel  context.CancelFunc
@@ -63,6 +69,7 @@ type Flash struct {
 }
 
 // NewFlash returns a new instance.
+// NewFlash 返回一个新的示例
 func NewFlash(dur time.Duration) *Flash {
 	return &Flash{
 		delay:   dur,
@@ -71,6 +78,7 @@ func NewFlash(dur time.Duration) *Flash {
 }
 
 // Channel returns the flash channel.
+// Channel 返回 flash channel
 func (f *Flash) Channel() FlashChan {
 	return f.msgChan
 }
@@ -118,26 +126,35 @@ func (f *Flash) Errf(fmat string, args ...any) {
 }
 
 // Clear clears the flash message.
+// Clear 清理消息，使用一条空消息覆盖
 func (f *Flash) Clear() {
 	f.fireCleared()
 }
 
 // SetMessage sets the flash level message.
+// SetMessage 设置快闪消息
 func (f *Flash) SetMessage(level FlashLevel, msg string) {
+	// 取消
 	if f.cancel != nil {
 		f.cancel()
 		f.cancel = nil
 	}
 
+	// 设置消息
 	f.setLevelMessage(LevelMessage{Level: level, Text: msg})
+	// 将消息推送到 channel
 	f.fireFlashChanged()
 
+	// 构造支持取消的 ctx
 	ctx := context.Background()
 	ctx, f.cancel = context.WithCancel(ctx)
+	// 异步刷新，不阻塞
 	go f.refresh(ctx)
 }
 
+// refresh 刷新，手动取消或者超时后退出
 func (f *Flash) refresh(ctx context.Context) {
+	// TODO FIX 移除 for 循环
 	for {
 		select {
 		case <-ctx.Done():
@@ -149,14 +166,17 @@ func (f *Flash) refresh(ctx context.Context) {
 	}
 }
 
+// setLevelMessage 更新消息
 func (f *Flash) setLevelMessage(msg LevelMessage) {
 	f.msg = msg
 }
 
+// fireFlashChanged 发送一条快闪消息
 func (f *Flash) fireFlashChanged() {
 	f.msgChan <- f.msg
 }
 
+// fireCleared 发送一条消息
 func (f *Flash) fireCleared() {
 	f.msgChan <- newClearMessage()
 }

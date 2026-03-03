@@ -32,22 +32,31 @@ type StackEvent struct {
 }
 
 // StackListener represents a stack listener.
+// StackListener 代表一个栈监听器
 type StackListener interface {
 	// StackPushed indicates a new item was added.
+	// StackPushed 有一个新元素入栈
 	StackPushed(Component)
 
 	// StackPopped indicates an item was deleted
+	// StackPopped 有一个元素出栈，最新的栈顶
 	StackPopped(old, new Component)
 
 	// StackTop indicates the top of the stack
+	// StackTop 当前栈的顶部元素，在监听器首次注册时调用
 	StackTop(Component)
 }
 
 // Stack represents a stacks of components.
+
+// Stack 代表堆结构的组件
 type Stack struct {
+	// 基于数组实现堆接口，最后的元素就是 Top
 	components []Component
-	listeners  []StackListener
-	mx         sync.RWMutex
+	// 当有 Pop/Push 操作时，触发通知操作
+	listeners []StackListener
+	// 同步读写保护，允许并发读，当操作 components 时，必须要先获得锁
+	mx sync.RWMutex
 }
 
 // NewStack returns a new initialized stack.
@@ -56,18 +65,21 @@ func NewStack() *Stack {
 }
 
 // Flatten returns a string representation of the component stack.
+// Flatten 返回字符串代表的组件栈
 func (s *Stack) Flatten() []string {
 	s.mx.RLock()
 	defer s.mx.RUnlock()
 
 	ss := make([]string, len(s.components))
 	for i, c := range s.components {
+		// 获取组件名称
 		ss[i] = c.Name()
 	}
 	return ss
 }
 
 // RemoveListener removes a listener.
+// RemoveListener 移除监听器
 func (s *Stack) RemoveListener(l StackListener) {
 	victim := -1
 	for i, lis := range s.listeners {
@@ -83,15 +95,19 @@ func (s *Stack) RemoveListener(l StackListener) {
 }
 
 // AddListener registers a stack listener.
+// AddListener 注册一个栈调用器
 func (s *Stack) AddListener(l StackListener) {
 	s.listeners = append(s.listeners, l)
-	if !s.Empty() {
+	if !s.Empty() { // 当栈中有元素时，触发通知
 		l.StackTop(s.Top())
 	}
 }
 
 // Push adds a new item.
+
+// Push 入栈
 func (s *Stack) Push(c Component) {
+	// 停止当前的 Top
 	if top := s.Top(); top != nil {
 		top.Stop()
 	}
@@ -103,6 +119,7 @@ func (s *Stack) Push(c Component) {
 }
 
 // Pop removed the top item and returns it.
+// Pop 弹出一个元素，bool 代表此次操作是否成功
 func (s *Stack) Pop() (Component, bool) {
 	if s.Empty() {
 		return nil, false
@@ -110,17 +127,21 @@ func (s *Stack) Pop() (Component, bool) {
 
 	var c Component
 	s.mx.Lock()
+	// 读取 Top
 	c = s.components[len(s.components)-1]
 	c.Stop()
+	// 裁剪 Slice
 	s.components = s.components[:len(s.components)-1]
 	s.mx.Unlock()
 
+	// 调用通知
 	s.notify(StackPop, c)
 
 	return c, true
 }
 
 // Peek returns stack state.
+// Peek 返回堆元素
 func (s *Stack) Peek() []Component {
 	s.mx.RLock()
 	defer s.mx.RUnlock()
@@ -129,6 +150,7 @@ func (s *Stack) Peek() []Component {
 }
 
 // Clear clear out the stack using pops.
+// Clear 使用 Pop 将所有元素出栈
 func (s *Stack) Clear() {
 	for range s.components {
 		s.Pop()
@@ -136,6 +158,7 @@ func (s *Stack) Clear() {
 }
 
 // Empty returns true if the stack is empty.
+// Empty 堆为空时，返回 true
 func (s *Stack) Empty() bool {
 	s.mx.RLock()
 	defer s.mx.RUnlock()
@@ -144,11 +167,15 @@ func (s *Stack) Empty() bool {
 }
 
 // IsLast indicates if stack only has one item left.
+// IsLast 检查堆中是否只有一个元素，
+// TODO FIX 此处应该加上读写锁
 func (s *Stack) IsLast() bool {
 	return len(s.components) == 1
 }
 
 // Previous returns the previous component if any.
+// Previous 返回前一个堆元素，如果只有一个，则返回该元素
+// TODO FIX 此处应该加上读写锁
 func (s *Stack) Previous() Component {
 	if s.Empty() {
 		return nil
@@ -161,6 +188,8 @@ func (s *Stack) Previous() Component {
 }
 
 // Top returns the top most item or nil if the stack is empty.
+// Top 返回最顶部的元素
+// TODO FIX 此处应该加上读写锁
 func (s *Stack) Top() Component {
 	if s.Empty() {
 		return nil
@@ -171,12 +200,14 @@ func (s *Stack) Top() Component {
 	return s.components[len(s.components)-1]
 }
 
+// notify 按操作类型通知
 func (s *Stack) notify(a StackAction, c Component) {
 	for _, l := range s.listeners {
 		switch a {
 		case StackPush:
 			l.StackPushed(c)
 		case StackPop:
+			// TODO FIX s.Top() 优化为读取一次，而不是每次调用时获取
 			l.StackPopped(c, s.Top())
 		}
 	}

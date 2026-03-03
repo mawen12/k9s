@@ -21,6 +21,20 @@ import (
 )
 
 // Config tracks K9s configuration options.
+
+//
+
+/*
+Config 跟踪 K9s 的配置选项。
+
+	K9s
+		对应配置文件，支持 yaml 和 json
+
+	conn
+		客户端连接
+
+	settings
+*/
 type Config struct {
 	K9s      *K9s `yaml:"k9s" json:"k9s"`
 	conn     client.Connection

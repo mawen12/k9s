@@ -17,6 +17,29 @@ import (
 )
 
 // App represents an application.
+
+/*
+App 代表一个应用
+
+	*tview.Application
+		tview 的应用指针
+
+	Configurator
+
+	Main
+
+	flash
+
+	actions
+
+	views
+
+	cmdBuff
+
+	running
+
+	mx
+*/
 type App struct {
 	*tview.Application
 	Configurator
@@ -52,6 +75,7 @@ func NewApp(cfg *config.Config, _ string) *App {
 }
 
 // Init initializes the application.
+// Init 初始化应用
 func (a *App) Init() {
 	a.bindKeys()
 	a.Prompt().SetModel(a.cmdBuff)
@@ -62,6 +86,7 @@ func (a *App) Init() {
 }
 
 // QueueUpdate queues up a ui action.
+// QueueUpdate 将ui操作加入队列
 func (a *App) QueueUpdate(f func()) {
 	if a.Application == nil {
 		return
@@ -72,6 +97,7 @@ func (a *App) QueueUpdate(f func()) {
 }
 
 // QueueUpdateDraw queues up a ui action and redraw the ui.
+// QueueUpdateDraw 将ui操作加入队列，并重绘ui
 func (a *App) QueueUpdateDraw(f func()) {
 	if a.Application == nil {
 		return
@@ -82,6 +108,7 @@ func (a *App) QueueUpdateDraw(f func()) {
 }
 
 // IsRunning checks if app is actually running.
+// IsRunning 检查 app 是否运行
 func (a *App) IsRunning() bool {
 	a.mx.RLock()
 	defer a.mx.RUnlock()
@@ -89,6 +116,7 @@ func (a *App) IsRunning() bool {
 }
 
 // SetRunning sets the app run state.
+// SetRunning 设置 app 运行状态
 func (a *App) SetRunning(f bool) {
 	a.mx.Lock()
 	defer a.mx.Unlock()
@@ -103,6 +131,7 @@ func (*App) BufferChanged(_, _ string) {}
 
 // BufferActive indicates the buff activity changed.
 func (a *App) BufferActive(state bool, _ model.BufferKind) {
+	// 读取 main 的 Flex
 	flex, ok := a.Main.GetPrimitive("main").(*tview.Flex)
 	if !ok {
 		return
@@ -120,6 +149,7 @@ func (a *App) BufferActive(state bool, _ model.BufferKind) {
 func (*App) SuggestionChanged([]string) {}
 
 // StylesChanged notifies the skin changed.
+// StylesChanged 样式发生变更
 func (a *App) StylesChanged(s *config.Styles) {
 	a.Main.SetBackgroundColor(s.BgColor())
 	if f, ok := a.Main.GetPrimitive("main").(*tview.Flex); ok {
@@ -137,6 +167,7 @@ func (a *App) StylesChanged(s *config.Styles) {
 }
 
 // Conn returns an api server connection.
+// Conn 返回 api 服务器连接
 func (a *App) Conn() client.Connection {
 	return a.Config.GetConnection()
 }
@@ -152,11 +183,14 @@ func (a *App) bindKeys() {
 }
 
 // BailOut exits the application.
+// BailOut 退出应用
 func (a *App) BailOut(exitCode int) {
+	// 保存配置
 	if err := a.Config.Save(true); err != nil {
 		slog.Error("Config save failed!", slogs.Error, err)
 	}
 
+	// 停止应用
 	a.Stop()
 	os.Exit(exitCode)
 }

@@ -15,6 +15,8 @@ import (
 const MaxHistory = 20
 
 // History represents a command history.
+
+// History 代表一个命令行历史记录
 type History struct {
 	commands   []string
 	limit      int
@@ -30,11 +32,13 @@ func NewHistory(limit int) *History {
 }
 
 // List returns the command history.
+// List 返回历史记录
 func (h *History) List() []string {
 	return h.commands
 }
 
 // Top returns the last command in the history if present.
+// Top 返回最近的历史记录，bool 表示操作是否成功
 func (h *History) Top() (string, bool) {
 	h.currentIdx = len(h.commands) - 1
 

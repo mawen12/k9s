@@ -54,6 +54,8 @@ type EncDecResourceViewer interface {
 }
 
 // Igniter represents a runnable view.
+
+// Igniter 代表一个运行中的 view
 type Igniter interface {
 	// Start starts a component.
 	Init(ctx context.Context) error
@@ -66,6 +68,8 @@ type Igniter interface {
 }
 
 // Hinter represent a menu mnemonic provider.
+
+// Hinter 代表菜单助记符提供者
 type Hinter interface {
 	// Hints returns a collection of menu hints.
 	Hints() MenuHints
@@ -75,6 +79,8 @@ type Hinter interface {
 }
 
 // Primitive represents a UI primitive.
+
+// Primitive 代表一个 UI 原语
 type Primitive interface {
 	tview.Primitive
 
@@ -83,12 +89,39 @@ type Primitive interface {
 }
 
 // Commander tracks prompt status.
+// Commander 跟踪提示状态
 type Commander interface {
 	// InCmdMode checks if prompt is active.
 	InCmdMode() bool
 }
 
 // Component represents a ui component.
+
+/*
+Component 代表一个 ui 组件。
+
+	Primitive
+		代表一个 UI 原语
+
+	Igniter
+		代表一个运行中的 view
+
+	Hinter
+		代表菜单助记符提供者
+
+	Commander
+		跟踪提示状态
+
+	Filterer
+		代表一个可过滤的组件
+
+	Viewer
+		代表一个资源视图器
+
+Component 的实现
+
+	Table
+*/
 type Component interface {
 	Primitive
 	Igniter
@@ -99,12 +132,16 @@ type Component interface {
 }
 
 // Viewer represents a resource viewer.
+
+// Viewer 代表一个资源视图器
 type Viewer interface {
 	// SetCommand sets the current command.
 	SetCommand(*cmd.Interpreter)
 }
 
 // Filterer represents a filterable component.
+
+// Filterer 代表一个可过滤的组件
 type Filterer interface {
 	// SetFilter sets the filter text.
 	SetFilter(string, bool)

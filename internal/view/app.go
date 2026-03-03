@@ -42,6 +42,36 @@ const (
 )
 
 // App represents an application view.
+
+/*
+App 代表一个应用视图
+
+	version
+
+	*ui.App
+
+	Content
+
+	command
+
+	factory
+
+	cancelFn
+
+	clusterModel
+
+	cmdHistory
+
+	filterHistory
+
+	conRetry
+
+	showHeader
+
+	showLogo
+
+	showCrumbs
+*/
 type App struct {
 	version string
 	*ui.App
