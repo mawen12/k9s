@@ -19,6 +19,7 @@ import (
 )
 
 // Synchronizer manages ui event queue.
+// Synchronizer 管理ui事件队列
 type synchronizer interface {
 	Flash() *model.Flash
 	Logo() *Logo
@@ -28,6 +29,7 @@ type synchronizer interface {
 }
 
 // Configurator represents an application configuration.
+// Configurator 代表一个应用程序配置
 type Configurator struct {
 	Config     *config.Config
 	Styles     *config.Styles

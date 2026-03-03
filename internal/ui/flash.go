@@ -20,6 +20,10 @@ const (
 )
 
 // Flash represents a flash message indicator.
+/*
+Flash 代表一个闪烁消息的指示器
+	其配合
+*/
 type Flash struct {
 	*tview.TextView
 
@@ -67,6 +71,7 @@ func (f *Flash) Watch(ctx context.Context, c model.FlashChan) {
 }
 
 // SetMessage sets flash message and level.
+// SetMessage 设置快闪消息和级别
 func (f *Flash) SetMessage(m model.LevelMessage) {
 	fn := func() {
 		if m.Text == "" {

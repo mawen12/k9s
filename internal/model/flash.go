@@ -40,6 +40,7 @@ func newClearMessage() LevelMessage {
 }
 
 // IsClear returns true if message is empty.
+// IsClear 返回消息是否为空
 func (l LevelMessage) IsClear() bool {
 	return l.Text == ""
 }
@@ -53,9 +54,11 @@ type FlashChan chan LevelMessage
 // FlashListener represents a text model listener.
 type FlashListener interface {
 	// FlashChanged notifies the model changed.
+	// FlashChanged 当模型变化时通知
 	FlashChanged(FlashLevel, string)
 
 	// FlashCleared notifies when the filter changed.
+	// FlashCleared 当过滤器变化时通知
 	FlashCleared()
 }
 

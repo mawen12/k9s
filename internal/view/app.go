@@ -49,6 +49,7 @@ App 代表一个应用视图
 	version
 
 	*ui.App
+		负责展示UI界面，处理输入事件，管理应用程序的生命周期等
 
 	Content
 
