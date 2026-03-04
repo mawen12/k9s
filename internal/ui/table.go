@@ -35,6 +35,8 @@ type (
 )
 
 // Table represents tabular data.
+// Table 基于 tview 的终端表格渲染
+// 实现交互功能：排序、过滤、标记、样式
 type Table struct {
 	*SelectTable
 	gvr            *client.GVR

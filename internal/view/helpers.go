@@ -177,6 +177,7 @@ func podCtx(_ *App, path, fieldSel string) ContextFunc {
 	}
 }
 
+// 从 ctx 中提取 App 实例，如果没有找到返回错误
 func extractApp(ctx context.Context) (*App, error) {
 	app, ok := ctx.Value(internal.KeyApp).(*App)
 	if !ok {

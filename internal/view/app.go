@@ -35,7 +35,8 @@ import (
 var ExitStatus = ""
 
 const (
-	splashDelay      = 1 * time.Second
+	splashDelay = 1 * time.Second
+	// 每隔 15s 刷新一次集群信息
 	clusterRefresh   = 15 * time.Second
 	clusterInfoWidth = 50
 	clusterInfoPad   = 15
@@ -126,14 +127,19 @@ func (a *App) ConOK() bool {
 func (a *App) Init(version string, _ int) error {
 	a.version = model.NormalizeVersion(version)
 
+	// 构造携带 app 的 ctx，方便后续组件获取 app 示例
 	ctx := context.WithValue(context.Background(), internal.KeyApp, a)
+	// 初始化 Content 组件
 	if err := a.Content.Init(ctx); err != nil {
 		return err
 	}
+	//
 	a.Content.AddListener(a.Crumbs())
 	a.Content.AddListener(a.Menu())
 
+	// 初始化 ui.App 组件
 	a.App.Init()
+	//
 	a.SetInputCapture(a.keyboard)
 	a.bindKeys()
 
@@ -159,12 +165,16 @@ func (a *App) Init(version string, _ int) error {
 	}
 	a.CmdBuff().SetSuggestionFn(a.suggestCommand())
 
+	// 设置 main 的布局
 	a.layout(ctx)
+	// 注册 信号处理函数，监听 SIGHUP 信号，一旦收到该信号就退出应用程序
 	a.initSignals()
 
+	//
 	if a.Config.K9s.ImageScans.Enable {
 		a.initImgScanner(version)
 	}
+	// 重新加载样式
 	a.ReloadStyles()
 
 	return nil
@@ -190,31 +200,44 @@ func (a *App) initImgScanner(version string) {
 	go vul.ImgScanner.Init("k9s", version)
 }
 
+// layout 设置 Main 的布局，包含状态指示器、内容区域、面包屑导航和 flash 区域。
 func (a *App) layout(ctx context.Context) {
+	// 创建 flash，并在一个异步的 goroutine 中监听 flash 消息通道，更新 flash 显示
 	flash := ui.NewFlash(a.App)
 	go flash.Watch(ctx, a.Flash().Channel())
 
+	// 创建 main 面板，包含状态指示器、内容区域、面包屑导航和 flash 区域。
 	main := tview.NewFlex().SetDirection(tview.FlexRow)
+	// 状态指示器
 	main.AddItem(a.statusIndicator(), 1, 1, false)
+	// 内容区域
 	main.AddItem(a.Content, 0, 10, true)
+	// 如果展示面包屑导航，则添加面包屑导航组件
 	if !a.Config.K9s.IsCrumbsless() {
 		main.AddItem(a.Crumbs(), 1, 1, false)
 	}
+	// flash 区域
 	main.AddItem(flash, 1, 1, false)
 
+	// 添加页面
 	a.Main.AddPage("main", main, true, false)
 	a.toggleHeader(!a.Config.K9s.IsHeadless(), !a.Config.K9s.IsLogoless())
+
+	// 如果展示启动页面，则添加启动页面组件
 	if !a.Config.K9s.IsSplashless() {
 		a.Main.AddPage("splash", ui.NewSplash(a.Styles, a.version), true, true)
 	}
 }
 
+// initSignals 初始化信号处理，监听 SIGHUP 信号，一旦收到该信号就退出应用程序。
 func (*App) initSignals() {
+	// 等待 SIGHUP 信号，如果收到则退出应用程序
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGHUP)
 
 	go func(sig chan os.Signal) {
-		<-sig
+		<-sig // 阻塞等待 signal 信号
+		// 一旦收到信息，就调用 os.Exit(0) 退出应用程序
 		os.Exit(0)
 	}(sig)
 }
@@ -366,12 +389,16 @@ func (a *App) Halt() {
 }
 
 // Resume restarts the app event loop.
+// Resume 重启 app 事件循环
 func (a *App) Resume() {
+	// 构造带有取消的 ctx，并且 app 可以取消
 	var ctx context.Context
 	ctx, a.cancelFn = context.WithCancel(context.Background())
 
+	// 异步更新集群，
 	go a.clusterUpdater(ctx)
 
+	// 如果启用了 UI 反应式更新，则启动配置文件、皮肤目录和自定义视图的监视器
 	if a.Config.K9s.UI.Reactive {
 		if err := a.ConfigWatcher(ctx, a); err != nil {
 			slog.Warn("ConfigWatcher failed", slogs.Error, err)
@@ -385,7 +412,9 @@ func (a *App) Resume() {
 	}
 }
 
+// clusterUpdater 异步更新集群信息
 func (a *App) clusterUpdater(ctx context.Context) {
+	// 如果没有有效的连接、工厂或者集群模型，则跳过更新集群信息
 	if a.Conn() == nil || !a.Conn().ConnectionOK() || a.factory == nil || a.clusterModel == nil {
 		slog.Debug("Skipping cluster updater - no valid connection")
 		return
@@ -574,14 +603,19 @@ func (a *App) BailOut(exitCode int) {
 }
 
 // Run starts the application loop.
+// Run 启动应用程序循环
 func (a *App) Run() error {
+	//
 	a.Resume()
 
+	// 异步初始化
 	go func() {
+		// 如果开启了 Splash，则等待 1s 后切换到 main 页面。
 		if !a.Config.K9s.IsSplashless() {
 			<-time.After(splashDelay)
 		}
 		a.QueueUpdateDraw(func() {
+			// 切换到 main 页面
 			a.Main.SwitchToPage("main")
 			// if command bar is already active, focus it
 			if a.CmdBuff().IsActive() {
@@ -593,7 +627,10 @@ func (a *App) Run() error {
 	if err := a.command.defaultCmd(true); err != nil {
 		return err
 	}
+
+	// 设置应用程序为运行状态
 	a.SetRunning(true)
+	// 运行 tview Application，如果发生错误则返回错误；否则正常结束
 	if err := a.Application.Run(); err != nil {
 		return err
 	}
@@ -844,6 +881,7 @@ func (a *App) clusterInfo() *ClusterInfo {
 	return a.Views()["clusterInfo"].(*ClusterInfo)
 }
 
+// 获取已注册的 status indicator 组件示例
 func (a *App) statusIndicator() *ui.StatusIndicator {
 	return a.Views()["statusIndicator"].(*ui.StatusIndicator)
 }

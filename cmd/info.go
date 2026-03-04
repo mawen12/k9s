@@ -16,6 +16,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// infoCmd 代表 info 命令
 func infoCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "info",

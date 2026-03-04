@@ -20,6 +20,8 @@ import (
 )
 
 // Table represents a table viewer.
+// Table 处理用户输入和命令
+// 协调 UI 和应用逻辑，绑定快捷键。
 type Table struct {
 	*ui.Table
 

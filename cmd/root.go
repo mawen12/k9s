@@ -38,6 +38,7 @@ var (
 	k9sFlags              *config.Flags
 	k8sFlags              *genericclioptions.ConfigFlags
 
+	// k9s 开头
 	rootCmd = &cobra.Command{
 		Use:   appName,
 		Short: shortAppDesc,
@@ -61,7 +62,9 @@ func init() {
 		return flagError{err: err}
 	})
 
+	// 注册命令：:version 和 :info
 	rootCmd.AddCommand(versionCmd(), infoCmd())
+	// 初始化 k9s flag
 	initK9sFlags()
 	initK8sFlags()
 }
@@ -73,15 +76,25 @@ func Execute() {
 	}
 }
 
+/*
+run 应用允许入口
+
+	view.NewApp
+		创建 view app
+
+	view.Init
+*/
 func run(*cobra.Command, []string) error {
 	if err := config.InitLocs(); err != nil {
 		return err
 	}
+	// 打开日志文件
 	logFile, err := os.OpenFile(
 		*k9sFlags.LogFile,
 		os.O_CREATE|os.O_APPEND|os.O_WRONLY,
 		data.DefaultFileMod,
 	)
+	//
 	if err != nil {
 		return fmt.Errorf("log file %q init failed: %w", *k9sFlags.LogFile, err)
 	}
@@ -100,6 +113,7 @@ func run(*cobra.Command, []string) error {
 		}
 	}()
 
+	// 使用 slog 作为日志记录
 	slog.SetDefault(slog.New(tint.NewHandler(logFile, &tint.Options{
 		Level:      parseLevel(*k9sFlags.LogLevel),
 		TimeFormat: time.RFC3339,
@@ -109,17 +123,25 @@ func run(*cobra.Command, []string) error {
 	if err != nil {
 		slog.Warn("Fail to load global/context configuration", slogs.Error, err)
 	}
+
+	// 创建 view app => ui app + pageStack
 	app := view.NewApp(cfg)
 	if app.Config.K9s.DefaultView != "" {
+		// 设置默认 view
 		app.Config.SetActiveView(app.Config.K9s.DefaultView)
 	}
 
+	// 初始化 view app => pageStack + ui app
 	if err := app.Init(version, int(*k9sFlags.RefreshRate)); err != nil {
 		return err
 	}
+
+	// 运行 view app
 	if err := app.Run(); err != nil {
 		return err
 	}
+
+	// 退出 view app 后检查退出状态
 	if view.ExitStatus != "" {
 		return fmt.Errorf("view exit status %s", view.ExitStatus)
 	}

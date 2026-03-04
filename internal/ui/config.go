@@ -134,7 +134,9 @@ func (c *Configurator) SkinsDirWatcher(ctx context.Context, s synchronizer) erro
 }
 
 // ConfigWatcher watches for config settings changes.
+// ConfigWatcher 监听配置设置的更改
 func (c *Configurator) ConfigWatcher(ctx context.Context, s synchronizer) error {
+	// 使用 fsnotify 来监视配置文件的更改
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
@@ -143,31 +145,37 @@ func (c *Configurator) ConfigWatcher(ctx context.Context, s synchronizer) error 
 	go func() {
 		for {
 			select {
+			// 处理文件创建和写入事件
 			case evt := <-w.Events:
 				if evt.Has(fsnotify.Create) || evt.Has(fsnotify.Write) {
 					slog.Debug("ConfigWatcher file changed", slogs.FileName, evt.Name)
-					if evt.Name == config.AppConfigFile {
+					// 检查文件名称
+					if evt.Name == config.AppConfigFile { // 监视主配置文件
 						if err := c.Config.Load(evt.Name, false); err != nil {
 							slog.Error("K9s config reload failed", slogs.Error, err)
 							s.Flash().Warn("k9s config reload failed. Check k9s logs!")
 							s.Logo().Warn("K9s config reload failed!")
 						}
-					} else {
+					} else { // 其他配置文件
 						if err := c.Config.K9s.Reload(); err != nil {
 							slog.Error("K9s context config reload failed", slogs.Error, err)
 							s.Flash().Warn("Context config reload failed. Check k9s logs!")
 							s.Logo().Warn("Context config reload failed!")
 						}
 					}
+					// 刷新样式
 					s.QueueUpdateDraw(func() {
 						c.RefreshStyles(s)
 					})
 				}
+			// 处理错误事件
 			case err := <-w.Errors:
 				slog.Warn("ConfigWatcher failed", slogs.Error, err)
 				return
+			// 处理取消事件
 			case <-ctx.Done():
 				slog.Debug("ConfigWatcher canceled")
+				// 关闭监视器并处理可能的错误
 				if err := w.Close(); err != nil {
 					slog.Error("Canceling ConfigWatcher", slogs.Error, err)
 				}
@@ -177,6 +185,7 @@ func (c *Configurator) ConfigWatcher(ctx context.Context, s synchronizer) error 
 	}()
 
 	slog.Debug("ConfigWatcher watching", slogs.FileName, config.AppConfigFile)
+	// 添加要监视的配置文件到监视器中
 	if err := w.Add(config.AppConfigFile); err != nil {
 		return err
 	}

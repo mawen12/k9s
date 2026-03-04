@@ -19,26 +19,34 @@ import (
 // App represents an application.
 
 /*
-App 代表一个应用
+App 主应用容器，负责管理页面栈、事件循环、全局快捷键
 
-	*tview.Application
-		tview 的应用指针
+ 1. 管理应用生命周期
 
-	Configurator
+ 2. 切换页面/视图
 
-	Main
+ 3. 处理全局快捷键
 
-	flash
+ 4. 事件路由
 
-	actions
+    *tview.Application
+    tview 的应用指针
 
-	views
+    Configurator
 
-	cmdBuff
+    Main
 
-	running
+    flash
 
-	mx
+    actions
+
+    views
+
+    cmdBuff
+
+    running
+
+    mx
 */
 type App struct {
 	*tview.Application
@@ -64,6 +72,7 @@ func NewApp(cfg *config.Config, _ string) *App {
 		cmdBuff:      model.NewFishBuff(':', model.CommandBuffer),
 	}
 
+	// 注册所有视图组件
 	a.views = map[string]tview.Primitive{
 		"menu":   NewMenu(a.Styles),
 		"logo":   NewLogo(a.Styles),
@@ -243,16 +252,20 @@ func (a *App) InCmdMode() bool {
 }
 
 // HasAction checks if key matches a registered binding.
+// HasAction 检查 key 是否匹配注册的绑定
 func (a *App) HasAction(key tcell.Key) (KeyAction, bool) {
 	return a.actions.Get(key)
 }
 
 // GetActions returns a collection of actions.
+// GetActions 返回一系列 actions
 func (a *App) GetActions() *KeyActions {
 	return a.actions
 }
 
+// TODO FIX 描述修复
 // AddActions returns the application actions.
+// AddActions 合并 KeyActions
 func (a *App) AddActions(aa *KeyActions) {
 	a.actions.Merge(aa)
 }
@@ -318,6 +331,7 @@ func (a *App) Flash() *model.Flash {
 // Helpers...
 
 // AsKey converts rune to keyboard key.
+// AsKey 将 rune 转换为键盘键
 func AsKey(evt *tcell.EventKey) tcell.Key {
 	if evt.Key() != tcell.KeyRune {
 		return evt.Key()

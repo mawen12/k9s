@@ -29,6 +29,9 @@ const (
 var genScheme = runtime.NewScheme()
 
 // Table retrieves K8s resources as tabular data.
+/*
+Table 从 K8s API 获取 Table 格式数据
+*/
 type Table struct {
 	Generic
 }

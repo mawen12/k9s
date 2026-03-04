@@ -41,6 +41,7 @@ func init() {
 	}
 }
 
+// 启动入口：k9s <command>
 func main() {
 	cmd.Execute()
 }

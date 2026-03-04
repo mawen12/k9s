@@ -8,6 +8,8 @@ import (
 	"github.com/derailed/tview"
 )
 
+// ModalList 代表一个模态列表组件，显示在屏幕中央。包含一个标题和一个列表。
+// 用户可以通过点击列表项或按下 Enter 键来选择一个项，或者按下 Escape 键来取消选择。
 type ModalList struct {
 	*tview.Box
 

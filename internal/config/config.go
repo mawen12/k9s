@@ -270,25 +270,32 @@ func (c *Config) Merge(c1 *Config) {
 }
 
 // Load loads K9s configuration from file.
+// Load 从文件加载 K9s 配置。
 func (c *Config) Load(path string, force bool) error {
+	// 首先检查文件是否存在，不存在，则调用 Save 方法创建一个新的配置文件。
 	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
 		if err := c.Save(force); err != nil {
 			return err
 		}
 	}
+	// 读取文件
 	bb, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
 	var errs error
+	// 验证 JSON 模式
 	if err := data.JSONValidator.Validate(json.K9sSchema, bb); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("k9s config file %q load failed:\n%w", path, err))
 	}
 
 	var cfg Config
+	// 验证 YAML 模式
 	if err := yaml.Unmarshal(bb, &cfg); err != nil {
 		errs = errors.Join(errs, fmt.Errorf("main config.yaml load failed: %w", err))
 	}
+
+	// 合并读取的配置
 	c.Merge(&cfg)
 
 	return errs

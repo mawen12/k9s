@@ -294,6 +294,7 @@ func (k *K9s) ActivateContext(contextName string) (*data.Context, error) {
 }
 
 // Reload reloads the context config from disk.
+// Reload 会从磁盘重新加载上下文配置
 func (k *K9s) Reload() error {
 	// Switching context skipping reload...
 	if k.getContextSwitch() {

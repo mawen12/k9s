@@ -75,6 +75,7 @@ func sevColor(s string) string {
 	}
 }
 
+// Table 漏洞扫描报告显示
 type table struct {
 	Rows []Row
 }

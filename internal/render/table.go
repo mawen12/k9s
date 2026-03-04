@@ -22,6 +22,10 @@ const ageTableCol = "Age"
 var ageCols = sets.New("Last Seen", "First Seen", "Age")
 
 // Table renders a tabular resource to screen.
+/*
+Table 将 metav1.Table 专为 k9s 内部格式，
+提取列头，格式化行数据。
+*/
 type Table struct {
 	Base
 	table    *metav1.Table

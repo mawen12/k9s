@@ -38,6 +38,8 @@ type TableListener interface {
 }
 
 // Table represents a table model.
+// Table 管理数据生命周期和刷新机制
+// 实现观察者模式，通知 UI 层数据变化
 type Table struct {
 	gvr           *client.GVR
 	data          *model1.TableData

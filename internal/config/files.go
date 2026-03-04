@@ -83,6 +83,7 @@ var (
 )
 
 // InitLogLoc initializes K9s logs location.
+// InitLogLoc 初始化 K9s 日志位置
 func InitLogLoc() error {
 	var appLogDir string
 	switch {
@@ -110,6 +111,7 @@ func InitLogLoc() error {
 }
 
 // InitLocs initializes k9s artifacts locations.
+// InitLocs 初始化 k9s 相关文件位置
 func InitLocs() error {
 	if isEnvSet(K9sEnvConfigDir) {
 		return initK9sEnvLocs()

@@ -10,7 +10,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//
+//
+
+/*
+versionCmd 代表 version 命令
+
+	k9s version
+		访问完整版本信息
+
+	k9s version -s
+		访问精简版本信息
+
+	k9s version --short
+		访问精简版本信息
+*/
 func versionCmd() *cobra.Command {
+	// 由命令行传递，代表是否打印彩色 Logo
 	var short bool
 
 	command := cobra.Command{
