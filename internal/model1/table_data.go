@@ -45,6 +45,7 @@ type FilterOpts struct {
 }
 
 // TableData tracks a K8s resource for tabular display.
+// TableData 跟踪 k8s 的资源用于表格展示
 type TableData struct {
 	header    Header
 	rowEvents *RowEvents

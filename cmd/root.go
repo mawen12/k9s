@@ -98,11 +98,13 @@ func run(*cobra.Command, []string) error {
 	if err != nil {
 		return fmt.Errorf("log file %q init failed: %w", *k9sFlags.LogFile, err)
 	}
+	// 设置退出回调，确保文件关闭
 	defer func() {
 		if logFile != nil {
 			_ = logFile.Close()
 		}
 	}()
+	// 设置退出回调，捕获 panic 错误
 	defer func() {
 		if err := recover(); err != nil {
 			slog.Error("Boom!! k9s init failed", slogs.Error, err)

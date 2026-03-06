@@ -19,11 +19,11 @@ import (
 	"github.com/derailed/tcell/v2"
 )
 
-// Table represents a table viewer.
-// Table 处理用户输入和命令
-// 协调 UI 和应用逻辑，绑定快捷键。
+/*
+Table 代表一个 table 视图
+*/
 type Table struct {
-	*ui.Table
+	*ui.Table // 负责数据展示
 
 	app        *App
 	enterFn    EnterFunc
@@ -37,6 +37,7 @@ func NewTable(gvr *client.GVR) *Table {
 	t := Table{
 		Table: ui.NewTable(gvr),
 	}
+	// 使用默认的环境变量
 	t.envFn = t.defaultEnv
 
 	return &t
@@ -137,6 +138,7 @@ func (t *Table) EnvFn() EnvFunc {
 	return t.envFn
 }
 
+// defaultEnv 读取默认的环境变量
 func (t *Table) defaultEnv() Env {
 	path := t.GetSelectedItem()
 	row := t.GetSelectedRow(path)

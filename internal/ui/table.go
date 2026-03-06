@@ -45,7 +45,7 @@ type Table struct {
 	manualSort     bool
 	Path           string
 	Extras         string
-	actions        *KeyActions
+	actions        *KeyActions // 事件，由 internal/view 中负责使用以及调度
 	cmdBuff        *model.FishBuff
 	styles         *config.Styles
 	viewSetting    *config.ViewSetting

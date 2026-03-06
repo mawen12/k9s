@@ -9,14 +9,15 @@ import (
 )
 
 // SelectTable represents a table with selections.
+// SelectTable 代表具有选择功能的 table，封装了对于 tview 的操作
 type SelectTable struct {
 	*tview.Table
 
-	model      Tabular
-	selectedFn func(string) string
-	marks      map[string]struct{}
-	selFgColor tcell.Color
-	selBgColor tcell.Color
+	model      Tabular             // 承载数据和动作的模型
+	selectedFn func(string) string // 已选择回调
+	marks      map[string]struct{} // 标记
+	selFgColor tcell.Color         // 字体颜色
+	selBgColor tcell.Color         // 背景颜色
 }
 
 // SetModel sets the table model.
@@ -30,8 +31,10 @@ func (s *SelectTable) GetModel() Tabular {
 }
 
 // ClearSelection reset selected row.
+// ClearSelection 重置已选择的行
 func (s *SelectTable) ClearSelection() {
 	s.Select(0, 0)
+	// 滚动到第一行
 	s.ScrollToBeginning()
 }
 
